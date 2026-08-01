@@ -1,6 +1,10 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 	db, err := connect()
@@ -10,4 +14,13 @@ func main() {
 	defer db.Close()
 
 	repo := NewTodoRepository(db) // to be passed to the handlers
+
+	var h Handler
+	h.repo = repo
+
+	router := gin.Default()
+
+	router.GET("/todos", h.GetAll)
+
+	router.Run()
 }
