@@ -25,5 +25,9 @@ func main() {
 
 	router.POST("/todos", handler.Create)
 
+	router.PUT("/todos/:id", handler.Update)
+
+	router.DELETE("/todos/:id", handler.Delete)
+
 	router.Run()
 }

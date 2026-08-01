@@ -17,27 +17,27 @@ func NewTodoRepository(db *sql.DB) *TodoRepository {
 }
 
 func (r *TodoRepository) GetAll() ([]Todo, error) {
+	todos := []Todo{}
 	rows, err := r.db.Query("SELECT id, title, completed FROM todos")
 
 	if err != nil {
-		return nil, err
+		return todos, err
 	}
 	defer rows.Close()
-	var todos []Todo
 
 	for rows.Next() {
 		var todo Todo
 		err := rows.Scan(&todo.ID, &todo.Title, &todo.Completed)
 
 		if err != nil {
-			return nil, err
+			return todos, err
 		}
 
 		todos = append(todos, todo)
 	}
 
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return todos, rows.Err()
 	}
 
 	return todos, nil
@@ -74,9 +74,29 @@ func (r *TodoRepository) GetByID(id int) (Todo, error) {
 
 func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, error) {
 	var todo Todo
+	err := r.db.QueryRow("UPDATE todos SET title = $1, completed = $2 WHERE id = $3 RETURNING id, title, completed", title, completed, id).Scan(&todo.ID, &todo.Title, &todo.Completed)
+
+	if err == sql.ErrNoRows {
+		return Todo{}, ErrNotFound
+	}
+	if err != nil {
+		return Todo{}, err
+	}
+
 	return todo, nil
 }
 
 func (r *TodoRepository) Delete(id int) error {
+	result, err := r.db.Exec("DELETE FROM todos WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	// Exec doesn't return ErrNoRows like QueryRow, so we need to check the number of rows affected
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+
 	return nil
 }
