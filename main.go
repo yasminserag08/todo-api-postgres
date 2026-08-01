@@ -23,5 +23,7 @@ func main() {
 
 	router.GET("/todos/:id", handler.GetByID)
 
+	router.POST("/todos", handler.Create)
+
 	router.Run()
 }

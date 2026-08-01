@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 )
 
-var ErrNotFound = fmt.Errorf("not found")
+var ErrNotFound = errors.New("not found")
 
 // instead of having to pass the connection to every function
 type TodoRepository struct {
@@ -45,6 +45,15 @@ func (r *TodoRepository) GetAll() ([]Todo, error) {
 
 func (r *TodoRepository) Create(title string) (Todo, error) {
 	var todo Todo
+	err := r.db.QueryRow(
+		"INSERT INTO todos (title) VALUES ($1) RETURNING id, title, completed",
+		title,
+	).Scan(&todo.ID, &todo.Title, &todo.Completed) // insert and also return the new todo
+
+	if err != nil {
+		return Todo{}, err
+	}
+
 	return todo, nil
 }
 

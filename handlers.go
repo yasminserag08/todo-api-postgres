@@ -27,7 +27,26 @@ func (h *Handler) GetAll(c *gin.Context) {
 }
 
 func (h *Handler) Create(c *gin.Context) {
-	// TODO
+	var newTodo Todo
+	err := c.ShouldBindJSON(&newTodo)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if newTodo.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "title is required"})
+	}
+
+	newTodo, err = h.repo.Create(newTodo.Title)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, newTodo)
 }
 
 func (h *Handler) GetByID(c *gin.Context) {
