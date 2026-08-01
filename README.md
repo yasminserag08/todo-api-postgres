@@ -100,5 +100,3 @@ curl -X DELETE http://localhost:8080/todos/1
 | `400` | Malformed JSON, invalid ID, or empty title |
 | `404` | No todo found with the given ID |
 | `500` | Database error |
-
----
