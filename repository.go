@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"time"
+	"fmt"
 )
 
-// instead of having to
+var ErrNotFound = fmt.Errorf("not found")
+
+// instead of having to pass the connection to every function
 type TodoRepository struct {
 	db *sql.DB
 }
@@ -15,7 +17,7 @@ func NewTodoRepository(db *sql.DB) *TodoRepository {
 }
 
 func (r *TodoRepository) GetAll() ([]Todo, error) {
-	rows, err := r.db.Query("SELECT * FROM todos")
+	rows, err := r.db.Query("SELECT id, title, completed FROM todos")
 
 	if err != nil {
 		return nil, err
@@ -25,14 +27,17 @@ func (r *TodoRepository) GetAll() ([]Todo, error) {
 
 	for rows.Next() {
 		var todo Todo
-		var time time.Time
-		err := rows.Scan(&todo.ID, &todo.Title, &todo.Completed, &time)
+		err := rows.Scan(&todo.ID, &todo.Title, &todo.Completed)
 
 		if err != nil {
 			return nil, err
 		}
 
 		todos = append(todos, todo)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
 	}
 
 	return todos, nil
@@ -45,6 +50,16 @@ func (r *TodoRepository) Create(title string) (Todo, error) {
 
 func (r *TodoRepository) GetByID(id int) (Todo, error) {
 	var todo Todo
+
+	row := r.db.QueryRow("SELECT id, title, completed FROM todos WHERE id = $1", id)
+	err := row.Scan(&todo.ID, &todo.Title, &todo.Completed)
+
+	if err == sql.ErrNoRows {
+		return Todo{}, ErrNotFound
+	} else if err != nil {
+		return Todo{}, err
+	}
+
 	return todo, nil
 }
 

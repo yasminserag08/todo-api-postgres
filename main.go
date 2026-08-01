@@ -15,12 +15,13 @@ func main() {
 
 	repo := NewTodoRepository(db) // to be passed to the handlers
 
-	var h Handler
-	h.repo = repo
+	handler := NewHandler(repo)
 
 	router := gin.Default()
 
-	router.GET("/todos", h.GetAll)
+	router.GET("/todos", handler.GetAll)
+
+	router.GET("/todos/:id", handler.GetByID)
 
 	router.Run()
 }
