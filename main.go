@@ -8,10 +8,12 @@ import (
 
 func main() {
 	db, err := connect()
+
+	sqlDB, err := db.DB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer sqlDB.Close()
 
 	repo := NewTodoRepository(db) // to be passed to the handlers
 

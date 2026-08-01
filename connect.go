@@ -1,18 +1,17 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
+	"gorm.io/gorm"
+
 	"github.com/joho/godotenv" // to avoid hardcoding the password
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
 )
 
-func connect() (*sql.DB, error) {
-	godotenv.Load() // reads .env into environment variables
-
+func connect() (*gorm.DB, error) {
 	// in case there's no .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, using system environment variables")
@@ -27,16 +26,13 @@ func connect() (*sql.DB, error) {
 		os.Getenv("DB_NAME"),
 	)
 
-	db, err := sql.Open("postgres", connStr) // validate that connStr looks correct & set up connection pool
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 
 	if err != nil {
 		return nil, err
 	}
 
-	// actual attempt to connect (error is returned if password is incorrect, db doesn't exist, psql is not running, etc)
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
+	db.AutoMigrate(&Todo{})
 
 	return db, nil
 }
