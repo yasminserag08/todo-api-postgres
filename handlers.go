@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,6 +53,12 @@ func (h *Handler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "priority must be Low, Medium, or High"})
 		return
 	}
+
+	if newTodo.DueDate != nil && !isFutureDate(*newTodo.DueDate) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "due date must be in the future"})
+		return
+	}
+
 	newTodo, err = h.repo.Create(newTodo)
 
 	if err != nil {
@@ -158,6 +165,11 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
+	if newTodo.DueDate != nil && !isFutureDate(*newTodo.DueDate) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "due date must be in the future"})
+		return
+	}
+
 	newTodo, err = h.repo.Update(id, newTodo.Title, newTodo.Completed)
 
 	if err == ErrNotFound {
@@ -246,4 +258,8 @@ func parseStatus(c *gin.Context) (bool, error) {
 		return false, err
 	}
 	return status, nil
+}
+
+func isFutureDate(date time.Time) bool {
+	return date.After(time.Now().UTC())
 }
