@@ -64,14 +64,31 @@ func (r *TodoRepository) GetTodosByStatus(status bool) ([]Todo, error) {
 func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, error) {
 	result := r.db.Model(&Todo{}).Where("id = ?", id).Updates(map[string]interface{}{"title": title, "completed": completed})
 
-	if result.Error == gorm.ErrRecordNotFound {
-		return Todo{}, ErrNotFound
-	}
 	if result.Error != nil {
 		return Todo{}, result.Error
 	}
+	if result.RowsAffected == 0 {
+		return Todo{}, ErrNotFound
+	}
 
 	return r.GetByID(id)
+}
+
+func (r *TodoRepository) UpdateByCategory(category string, completed bool) ([]Todo, error) {
+	var todos []Todo
+
+	result := r.db.Model(&Todo{}).Where("category = ?", category).Update("completed", completed)
+
+	if result.Error != nil {
+		return []Todo{}, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return []Todo{}, ErrNotFound
+	}
+
+	r.db.Where("category = ?", category).Find(&todos)
+
+	return todos, nil
 }
 
 func (r *TodoRepository) Delete(id int) error {

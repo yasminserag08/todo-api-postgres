@@ -33,6 +33,8 @@ func main() {
 
 	router.PUT("/todos/:id", handler.Update)
 
+	router.PUT("/todos/category/:category", handler.UpdateByCategory)
+
 	router.DELETE("/todos/:id", handler.Delete)
 
 	router.DELETE("/todos", handler.DeleteAll)

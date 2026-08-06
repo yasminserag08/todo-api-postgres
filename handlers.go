@@ -134,6 +134,33 @@ func (h *Handler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, newTodo)
 }
 
+func (h *Handler) UpdateByCategory(c *gin.Context) {
+	category := c.Param("category")
+
+	var newTodo Todo
+
+	err := c.ShouldBindJSON(&newTodo)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, newTodo)
+		return
+	}
+
+	// only take completed since the spec says so
+	newTodos, err := h.repo.UpdateByCategory(category, newTodo.Completed)
+
+	if err == ErrNotFound {
+		c.JSON(http.StatusNotFound, newTodos)
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, newTodos)
+		return
+	}
+
+	c.JSON(http.StatusOK, newTodos)
+}
+
 func (h *Handler) Delete(c *gin.Context) {
 	id, err := parseID(c)
 
