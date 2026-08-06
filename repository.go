@@ -53,6 +53,14 @@ func (r *TodoRepository) GetTodosByCategory(category string) ([]Todo, error) {
 	return todos, result.Error
 }
 
+func (r *TodoRepository) GetTodosByStatus(status bool) ([]Todo, error) {
+	todos := []Todo{}
+
+	result := r.db.Where("completed = ?", status).Find(&todos)
+
+	return todos, result.Error
+}
+
 func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, error) {
 	result := r.db.Model(&Todo{}).Where("id = ?", id).Updates(map[string]interface{}{"title": title, "completed": completed})
 

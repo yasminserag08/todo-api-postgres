@@ -82,6 +82,23 @@ func (h *Handler) GetTodosByCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, todos)
 }
 
+func (h *Handler) GetTodosByStatus(c *gin.Context) {
+	status, err := parseStatus(c)
+
+	if err != nil {
+		return
+	}
+
+	todos, err := h.repo.GetTodosByStatus(status)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, todos)
+		return
+	}
+
+	c.JSON(http.StatusOK, todos)
+}
+
 func (h *Handler) Update(c *gin.Context) {
 	id, err := parseID(c)
 
@@ -155,4 +172,13 @@ func parseID(c *gin.Context) (int, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func parseStatus(c *gin.Context) (bool, error) {
+	status, err := strconv.ParseBool(c.Param("status"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+		return false, err
+	}
+	return status, nil
 }

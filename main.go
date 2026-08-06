@@ -27,6 +27,8 @@ func main() {
 
 	router.GET("/todos/category/:category", handler.GetTodosByCategory)
 
+	router.GET("todos/status/:status", handler.GetTodosByStatus)
+
 	router.POST("/todos", handler.Create)
 
 	router.PUT("/todos/:id", handler.Update)
