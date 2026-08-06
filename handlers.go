@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +41,17 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
+	switch strings.ToLower(newTodo.Priority) {
+	case "low":
+		newTodo.Priority = "Low"
+	case "medium":
+		newTodo.Priority = "Medium"
+	case "high":
+		newTodo.Priority = "High"
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "priority must be Low, Medium, or High"})
+		return
+	}
 	newTodo, err = h.repo.Create(newTodo)
 
 	if err != nil {
@@ -75,7 +87,7 @@ func (h *Handler) GetTodosByCategory(c *gin.Context) {
 	todos, err := h.repo.GetTodosByCategory(category)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, todos)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -86,13 +98,14 @@ func (h *Handler) GetTodosByStatus(c *gin.Context) {
 	status, err := parseStatus(c)
 
 	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	todos, err := h.repo.GetTodosByStatus(status)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, todos)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -105,7 +118,7 @@ func (h *Handler) Search(c *gin.Context) {
 	todos, err := h.repo.Search(q)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, todos)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -124,12 +137,24 @@ func (h *Handler) Update(c *gin.Context) {
 	err = c.ShouldBindJSON(&newTodo)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, newTodo)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if newTodo.Title == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "title is required"})
+		return
+	}
+
+	switch strings.ToLower(newTodo.Priority) {
+	case "low":
+		newTodo.Priority = "Low"
+	case "medium":
+		newTodo.Priority = "Medium"
+	case "high":
+		newTodo.Priority = "High"
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "priority must be Low, Medium, or High"})
 		return
 	}
 
@@ -155,7 +180,7 @@ func (h *Handler) UpdateByCategory(c *gin.Context) {
 	err := c.ShouldBindJSON(&newTodo)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, newTodo)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -163,11 +188,11 @@ func (h *Handler) UpdateByCategory(c *gin.Context) {
 	newTodos, err := h.repo.UpdateByCategory(category, newTodo.Completed)
 
 	if err == ErrNotFound {
-		c.JSON(http.StatusNotFound, newTodos)
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, newTodos)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
