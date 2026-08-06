@@ -124,6 +124,17 @@ func (h *Handler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Todo deleted"})
 }
 
+func (h *Handler) DeleteAll(c *gin.Context) {
+	err := h.repo.DeleteAll()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "All todos deleted"})
+}
+
 func parseID(c *gin.Context) (int, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

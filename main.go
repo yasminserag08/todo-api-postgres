@@ -31,5 +31,7 @@ func main() {
 
 	router.DELETE("/todos/:id", handler.Delete)
 
+	router.DELETE("/todos", handler.DeleteAll)
+
 	router.Run()
 }

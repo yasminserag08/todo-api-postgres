@@ -75,3 +75,8 @@ func (r *TodoRepository) Delete(id int) error {
 
 	return nil
 }
+
+func (r *TodoRepository) DeleteAll() error {
+	result := r.db.Exec("TRUNCATE TABLE todos RESTART IDENTITY")
+	return result.Error
+}
