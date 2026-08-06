@@ -29,6 +29,8 @@ func main() {
 
 	router.GET("todos/status/:status", handler.GetTodosByStatus)
 
+	router.GET("todos/search", handler.Search)
+
 	router.POST("/todos", handler.Create)
 
 	router.PUT("/todos/:id", handler.Update)

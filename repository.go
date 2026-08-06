@@ -61,6 +61,14 @@ func (r *TodoRepository) GetTodosByStatus(status bool) ([]Todo, error) {
 	return todos, result.Error
 }
 
+func (r *TodoRepository) Search(q string) ([]Todo, error) {
+	todos := []Todo{}
+
+	result := r.db.Where("title ILIKE ?", "%"+q+"%").Find(&todos) // ilike because case insensitive
+
+	return todos, result.Error
+}
+
 func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, error) {
 	result := r.db.Model(&Todo{}).Where("id = ?", id).Updates(map[string]interface{}{"title": title, "completed": completed})
 

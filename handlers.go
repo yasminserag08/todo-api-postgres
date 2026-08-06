@@ -99,6 +99,19 @@ func (h *Handler) GetTodosByStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, todos)
 }
 
+func (h *Handler) Search(c *gin.Context) {
+	q := c.Query("q")
+
+	todos, err := h.repo.Search(q)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, todos)
+		return
+	}
+
+	c.JSON(http.StatusOK, todos)
+}
+
 func (h *Handler) Update(c *gin.Context) {
 	id, err := parseID(c)
 
