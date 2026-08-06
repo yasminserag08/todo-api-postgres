@@ -59,6 +59,13 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
+	if newTodo.Completed {
+		now := time.Now().UTC()
+		newTodo.CompletedAt = &now
+	} else {
+		newTodo.CompletedAt = nil
+	}
+
 	newTodo, err = h.repo.Create(newTodo)
 
 	if err != nil {
@@ -170,7 +177,14 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
-	newTodo, err = h.repo.Update(id, newTodo.Title, newTodo.Completed)
+	if newTodo.Completed {
+		now := time.Now().UTC()
+		newTodo.CompletedAt = &now
+	} else {
+		newTodo.CompletedAt = nil
+	}
+
+	newTodo, err = h.repo.Update(id, newTodo)
 
 	if err == ErrNotFound {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -196,8 +210,15 @@ func (h *Handler) UpdateByCategory(c *gin.Context) {
 		return
 	}
 
+	if newTodo.Completed {
+		now := time.Now().UTC()
+		newTodo.CompletedAt = &now
+	} else {
+		newTodo.CompletedAt = nil
+	}
+
 	// only take completed since the spec says so
-	newTodos, err := h.repo.UpdateByCategory(category, newTodo.Completed)
+	newTodos, err := h.repo.UpdateByCategory(category, newTodo.Completed, newTodo.CompletedAt)
 
 	if err == ErrNotFound {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})

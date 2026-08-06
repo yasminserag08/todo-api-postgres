@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -69,8 +70,18 @@ func (r *TodoRepository) Search(q string) ([]Todo, error) {
 	return todos, result.Error
 }
 
-func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, error) {
-	result := r.db.Model(&Todo{}).Where("id = ?", id).Updates(map[string]interface{}{"title": title, "completed": completed})
+func (r *TodoRepository) Update(id int, newTodo Todo) (Todo, error) {
+	result := r.db.Model(&Todo{}).
+		Where("id = ?", id).
+		Select("title", "completed", "completed_at", "category", "priority", "due_date").
+		Updates(map[string]interface{}{
+			"title":        newTodo.Title,
+			"completed":    newTodo.Completed,
+			"completed_at": newTodo.CompletedAt,
+			"category":     newTodo.Category,
+			"priority":     newTodo.Priority,
+			"due_date":     newTodo.DueDate,
+		})
 
 	if result.Error != nil {
 		return Todo{}, result.Error
@@ -82,10 +93,16 @@ func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, err
 	return r.GetByID(id)
 }
 
-func (r *TodoRepository) UpdateByCategory(category string, completed bool) ([]Todo, error) {
+func (r *TodoRepository) UpdateByCategory(category string, completed bool, completedAt *time.Time) ([]Todo, error) {
 	var todos []Todo
 
-	result := r.db.Model(&Todo{}).Where("category = ?", category).Update("completed", completed)
+	result := r.db.Model(&Todo{}).
+		Where("category = ?", category).
+		Select("completed", "completed_at").
+		Updates(map[string]interface{}{
+			"completed":    completed,
+			"completed_at": completedAt,
+		})
 
 	if result.Error != nil {
 		return []Todo{}, result.Error
