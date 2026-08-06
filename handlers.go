@@ -40,7 +40,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	newTodo, err = h.repo.Create(newTodo.Title)
+	newTodo, err = h.repo.Create(newTodo)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -67,6 +67,19 @@ func (h *Handler) GetByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, todo)
+}
+
+func (h *Handler) GetTodosByCategory(c *gin.Context) {
+	category := c.Param("category")
+
+	todos, err := h.repo.GetTodosByCategory(category)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, todos)
+		return
+	}
+
+	c.JSON(http.StatusOK, todos)
 }
 
 func (h *Handler) Update(c *gin.Context) {

@@ -27,11 +27,7 @@ func (r *TodoRepository) GetAll() ([]Todo, error) {
 	return todos, nil
 }
 
-func (r *TodoRepository) Create(title string) (Todo, error) {
-	todo := Todo{}
-
-	todo.Title = title
-
+func (r *TodoRepository) Create(todo Todo) (Todo, error) {
 	result := r.db.Create(&todo)
 
 	return todo, result.Error
@@ -47,6 +43,14 @@ func (r *TodoRepository) GetByID(id int) (Todo, error) {
 	}
 
 	return todo, result.Error
+}
+
+func (r *TodoRepository) GetTodosByCategory(category string) ([]Todo, error) {
+	todos := []Todo{}
+
+	result := r.db.Where("category = ?", category).Find(&todos)
+
+	return todos, result.Error
 }
 
 func (r *TodoRepository) Update(id int, title string, completed bool) (Todo, error) {
