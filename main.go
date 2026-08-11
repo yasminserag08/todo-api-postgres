@@ -18,25 +18,31 @@ func main() {
 	}
 	defer sqlDB.Close()
 
-	repo := NewTodoRepository(db) // to be passed to the handlers
+	repo := NewTodoRepository(db)
+	userRepo := NewUserRepository(db)
+	authHandler := NewAuthHandler(userRepo)
 
 	handler := NewHandler(repo)
 
 	router := gin.Default()
 
-	router.GET("/todos", handler.GetAll)
-	router.GET("/todos/category/:category", handler.GetTodosByCategory)
-	router.GET("/todos/status/:status", handler.GetTodosByStatus)
-	router.GET("/todos/search", handler.Search)
-	router.GET("/todos/:id", handler.GetByID)
+	router.POST("/signup", authHandler.SignUp)
+	router.POST("/login", authHandler.LogIn)
 
-	router.POST("/todos", handler.Create)
-
-	router.PUT("/todos/category/:category", handler.UpdateByCategory)
-	router.PUT("/todos/:id", handler.Update)
-
-	router.DELETE("/todos", handler.DeleteAll)
-	router.DELETE("/todos/:id", handler.Delete)
+	todos := router.Group("/todos")
+	todos.Use(AuthMiddleware())
+	{
+		router.GET("", handler.GetAll)
+		router.GET("/category/:category", handler.GetTodosByCategory)
+		router.GET("/status/:status", handler.GetTodosByStatus)
+		router.GET("/search", handler.Search)
+		router.GET("/:id", handler.GetByID)
+		router.POST("", handler.Create)
+		router.PUT("/category/:category", handler.UpdateByCategory)
+		router.PUT("/:id", handler.Update)
+		router.DELETE("", AdminOnly(), handler.DeleteAll)
+		router.DELETE("/:id", handler.Delete)
+	}
 
 	router.Run()
 }

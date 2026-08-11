@@ -66,6 +66,9 @@ func (h *Handler) Create(c *gin.Context) {
 		newTodo.CompletedAt = nil
 	}
 
+	userID, _ := c.Get("userID")
+	newTodo.UserID = userID.(uint)
+
 	newTodo, err = h.repo.Create(newTodo)
 
 	if err != nil {
@@ -236,6 +239,24 @@ func (h *Handler) Delete(c *gin.Context) {
 	id, err := parseID(c)
 
 	if err != nil {
+		return
+	}
+
+	// get the todo first to check if it exists
+	todo, err := h.repo.GetByID(id)
+	if err == ErrNotFound {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	role, _ := c.Get("role")
+	userID, _ := c.Get("userID")
+
+	if role != "admin" && todo.UserID != userID.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you can only delete your own todos"})
 		return
 	}
 
