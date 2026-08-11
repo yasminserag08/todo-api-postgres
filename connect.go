@@ -33,6 +33,7 @@ func connect() (*gorm.DB, error) {
 	}
 
 	db.AutoMigrate(&Todo{})
+	db.AutoMigrate(&User{})
 
 	return db, nil
 }

@@ -10,6 +10,7 @@ type Todo struct {
 	Priority    string     `gorm:"type:varchar(10);not null;default:'Medium'" json:"priority"`
 	CompletedAt *time.Time `json:"completedAt"`
 	DueDate     *time.Time `json:"dueDate"`
+	UserID      uint       `gorm:"not null" json:"userID"`
 }
 
 // used pointers to *time.Time so value can be nil and to make comparisons between dates easier than string.
