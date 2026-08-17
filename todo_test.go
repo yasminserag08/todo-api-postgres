@@ -252,15 +252,16 @@ func TestSearch_EmptyArray(t *testing.T) {
 func TestCreate_Success(t *testing.T) {
 	testRepo := new(MockTodoRepository)
 
-	testRepo.On("Create", Todo{Title: "Test Todo", Priority: "High"}).Return(Todo{ID: 1, Title: "Test Todo"}, nil)
+	testRepo.On("Create", Todo{Title: "Test Todo", Priority: "High", UserID: 1}).Return(Todo{ID: 1, Title: "Test Todo"}, nil)
 
-	body := strings.NewReader(`{"title": "Test Todo", "priority":"high"}`)
+	body := strings.NewReader(`{"title": "Test Todo", "priority":"high", "userID": 1}`)
 	req := httptest.NewRequest("POST", "/todos", body)
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
 
 	c, _ := gin.CreateTestContext(w)
+	c.Set("userID", uint(1))
 	c.Request = req
 
 	handler := NewHandler(testRepo)
@@ -278,6 +279,7 @@ func TestCreate_EmptyTitle(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	c, _ := gin.CreateTestContext(w)
+	c.Set("userID", uint(1))
 	c.Request = req
 
 	handler := NewHandler(new(MockTodoRepository))
@@ -295,6 +297,7 @@ func TestCreate_InvalidPriority(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	c, _ := gin.CreateTestContext(w)
+	c.Set("userID", uint(1))
 	c.Request = req
 
 	handler := NewHandler(new(MockTodoRepository))
@@ -312,6 +315,7 @@ func TestCreate_PastDueDate(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	c, _ := gin.CreateTestContext(w)
+	c.Set("userID", uint(1))
 	c.Request = req
 
 	handler := NewHandler(new(MockTodoRepository))
@@ -329,6 +333,7 @@ func TestCreate_InvalidJSON(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	c, _ := gin.CreateTestContext(w)
+	c.Set("userID", uint(1))
 	c.Request = req
 
 	handler := NewHandler(new(MockTodoRepository))
@@ -484,82 +489,4 @@ func TestUpdateByCategory_CategoryNotFound(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "not found")
 }
 
-// DELETE /todos/:id
-func TestDelete_Success(t *testing.T) {
-	testRepo := new(MockTodoRepository)
-
-	testRepo.On("Delete", 1).Return(nil)
-
-	req := httptest.NewRequest("DELETE", "/todos/1", nil)
-
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Params = gin.Params{{Key: "id", Value: "1"}}
-	c.Request = req
-
-	handler := NewHandler(testRepo)
-	handler.Delete(c)
-
-	assert.Equal(t, 200, w.Code)
-	assert.Contains(t, w.Body.String(), "Todo deleted")
-}
-
-func TestDelete_NotFound(t *testing.T) {
-	testRepo := new(MockTodoRepository)
-
-	testRepo.On("Delete", 1).Return(ErrNotFound)
-
-	req := httptest.NewRequest("DELETE", "/todos/1", nil)
-
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Params = gin.Params{{Key: "id", Value: "1"}}
-	c.Request = req
-
-	handler := NewHandler(testRepo)
-	handler.Delete(c)
-
-	assert.Equal(t, 404, w.Code)
-	assert.Contains(t, w.Body.String(), "not found")
-}
-
-// DELETE /todos
-func TestDeleteAll_Success(t *testing.T) {
-	testRepo := new(MockTodoRepository)
-
-	testRepo.On("DeleteAll").Return(nil)
-
-	req := httptest.NewRequest("DELETE", "/todos", nil)
-
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Request = req
-
-	handler := NewHandler(testRepo)
-	handler.DeleteAll(c)
-
-	assert.Equal(t, 200, w.Code)
-	assert.Contains(t, w.Body.String(), "All todos deleted")
-}
-
-func TestDeleteAll_DatabaseError(t *testing.T) {
-	testRepo := new(MockTodoRepository)
-
-	testRepo.On("DeleteAll").Return(errors.New("db error"))
-
-	req := httptest.NewRequest("DELETE", "/todos", nil)
-
-	w := httptest.NewRecorder()
-
-	c, _ := gin.CreateTestContext(w)
-	c.Request = req
-
-	handler := NewHandler(testRepo)
-	handler.DeleteAll(c)
-
-	assert.Equal(t, 500, w.Code)
-	assert.Contains(t, w.Body.String(), "db error")
-}
+// delete test cases have been removed because they are tested in auth_test.go
